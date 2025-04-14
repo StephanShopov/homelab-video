@@ -1,0 +1,28 @@
+services:
+  vikunja-db:
+   image: postgres:16
+   container_name: vikunja-db
+   env_file:
+     - .env
+   volumes:
+     - ./data/db:/var/lib/postgresql/data
+   restart: unless-stopped
+   healthcheck:
+     test: ["CMD-SHELL", "pg_isready -h localhost -U $$POSTGRES_USER"]
+     interval: 2s
+
+  vikunja:
+    image: vikunja/vikunja
+    container_name: vikunja-tracker
+    restart: always
+    ports:
+      - 3456:3456
+    env_file:
+      - .env
+    volumes:
+      - ./config.yaml:/app/vikunja/config.yml:ro
+      - ./files:/app/vikunja/files'
+      - ./db:/db
+    depends_on:
+      vikunja-db:
+        condition: service_healthy
