@@ -1,0 +1,4 @@
+DB_NAME=nextcloud
+DB_USERNAME=nextcloud
+DB_PASSWD=verystrongpassword
+REDIS_PASSWD=verystrongpasswooord

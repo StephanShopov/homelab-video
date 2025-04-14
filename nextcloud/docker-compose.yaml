@@ -1,0 +1,50 @@
+services:
+  nextcloud:
+    image: nextcloud:31.0.2
+    container_name: nextcloud-server
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Moscow
+      - REDIS_HOST=redis-nc
+      - REDIS_HOST_PASSWORD=${REDIS_PASSWD}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USERNAME}
+      - MYSQL_PASSWORD=${DB_PASSWD}
+      - MYSQL_HOST=mariadb-nc
+      - DEFAULT_PHONE_REGION=RU
+    volumes:
+      - ./data/html:/var/www/html
+      - ./data/custom_apps:/var/www/html/custom_apps
+      - ./config:/var/www/html/config
+      - ./data/nc_data:/var/www/html/data
+    ports:
+      - 8180:80
+    restart: unless-stopped
+    depends_on:
+      - mariadb-nc
+      - redis-nc
+
+  mariadb-nc:
+    image: mariadb:11.7.2
+    container_name: nextcloud-db
+    restart: unless-stopped
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/Moscow
+      - MYSQL_RANDOM_ROOT_PASSWORD=true
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USERNAME}
+      - MYSQL_PASSWORD=${DB_PASSWD}
+    volumes:
+      - ./data/db:/var/lib/mysql
+
+  redis-nc:
+    image: redis:alpine
+    container_name: nextcloud-redis
+    command: redis-server --requirepass ${REDIS_PASSWD}
+    restart: unless-stopped
+    volumes:
+      - ./data/redis:/data
